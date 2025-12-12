@@ -1,4 +1,5 @@
 import { Configuration } from './configuration';
+import { defaultIgnoreFileExtensions } from './default-file-extensions';
 
 export const defaultConfig: Configuration = {
   version: 1,
@@ -11,5 +12,7 @@ export const defaultConfig: Configuration = {
   log: false,
   entryFile: '',
   isConfigFileMissing: false,
-  barrelFileName: 'index.ts'
+  barrelFileName: 'index.ts',
+  entryPoints: undefined,
+  ignoreFileExtensions: defaultIgnoreFileExtensions,
 };

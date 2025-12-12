@@ -1,5 +1,50 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`export data > Multi project setup > should test a simple multi-project workspace with multiple entryPoints > multi-project-multiple-entrypoint 1`] = `
+"{
+  "projects/project-i/src/main.ts": {
+    "module": ".",
+    "moduleType": "barrel-less",
+    "tags": [
+      "root"
+    ],
+    "imports": [],
+    "unresolvedImports": [],
+    "projectName": "project-i",
+    "externalLibraries": []
+  }
+}
+{
+  "projects/project-ii/src/main.ts": {
+    "module": ".",
+    "moduleType": "barrel-less",
+    "tags": [
+      "root"
+    ],
+    "imports": [],
+    "unresolvedImports": [],
+    "projectName": "project-ii",
+    "externalLibraries": []
+  }
+}"
+`;
+
+exports[`export data > Multi project setup > should test a simple multi-project workspace with single entryPoint > multi-project-single-entrypoint 1`] = `
+"{
+  "projects/project-i/src/main.ts": {
+    "module": ".",
+    "moduleType": "barrel-less",
+    "tags": [
+      "root"
+    ],
+    "imports": [],
+    "unresolvedImports": [],
+    "projectName": "project-i",
+    "externalLibraries": []
+  }
+}"
+`;
+
 exports[`export data > should also work with a sheriff.config.ts > sheriff-config 1`] = `
 "{
   "src/main.ts": {
@@ -12,6 +57,8 @@ exports[`export data > should also work with a sheriff.config.ts > sheriff-confi
       "src/holidays/index.ts",
       "src/customers/index.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/holidays/index.ts": {
@@ -21,6 +68,8 @@ exports[`export data > should also work with a sheriff.config.ts > sheriff-confi
       "scope:holidays"
     ],
     "imports": [],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/customers/index.ts": {
@@ -30,6 +79,8 @@ exports[`export data > should also work with a sheriff.config.ts > sheriff-confi
       "scope:customers"
     ],
     "imports": [],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   }
 }"
@@ -47,6 +98,8 @@ exports[`export data > should avoid circular dependencies > circular-dependencie
       "src/app1.service.ts",
       "src/app2.service.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/app1.service.ts": {
@@ -58,6 +111,8 @@ exports[`export data > should avoid circular dependencies > circular-dependencie
     "imports": [
       "src/app2.service.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/app2.service.ts": {
@@ -69,6 +124,26 @@ exports[`export data > should avoid circular dependencies > circular-dependencie
     "imports": [
       "src/app1.service.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
+    "externalLibraries": []
+  }
+}"
+`;
+
+exports[`export data > should show unresolved imports > unresolved-imports 1`] = `
+"{
+  "src/main.ts": {
+    "module": ".",
+    "moduleType": "barrel-less",
+    "tags": [
+      "root"
+    ],
+    "imports": [],
+    "unresolvedImports": [
+      "my-module"
+    ],
+    "projectName": "default",
     "externalLibraries": []
   }
 }"
@@ -85,6 +160,8 @@ exports[`export data > should skip not reachable files > not-reachable-files 1`]
     "imports": [
       "src/app1.service.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/app1.service.ts": {
@@ -94,6 +171,8 @@ exports[`export data > should skip not reachable files > not-reachable-files 1`]
       "root"
     ],
     "imports": [],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   }
 }"
@@ -110,6 +189,8 @@ exports[`export data > should test a simple application > simple-application 1`]
     "imports": [
       "src/holidays/feature/index.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/holidays/feature/index.ts": {
@@ -122,6 +203,8 @@ exports[`export data > should test a simple application > simple-application 1`]
     "imports": [
       "src/holidays/feature/holidays-container.component.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/holidays/feature/holidays-container.component.ts": {
@@ -136,6 +219,8 @@ exports[`export data > should test a simple application > simple-application 1`]
       "src/holidays/ui/index.ts",
       "src/holidays/model/index.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": [
       "@angular/common",
       "@angular/core",
@@ -152,6 +237,8 @@ exports[`export data > should test a simple application > simple-application 1`]
     "imports": [
       "src/holidays/data/holidays-store.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/holidays/data/holidays-store.ts": {
@@ -164,6 +251,8 @@ exports[`export data > should test a simple application > simple-application 1`]
     "imports": [
       "src/holidays/model/index.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": [
       "@ngrx/signals"
     ]
@@ -178,6 +267,8 @@ exports[`export data > should test a simple application > simple-application 1`]
     "imports": [
       "src/holidays/model/holiday.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/holidays/model/holiday.ts": {
@@ -188,6 +279,8 @@ exports[`export data > should test a simple application > simple-application 1`]
       "type:model"
     ],
     "imports": [],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/holidays/ui/index.ts": {
@@ -200,6 +293,8 @@ exports[`export data > should test a simple application > simple-application 1`]
     "imports": [
       "src/holidays/ui/holidays.component.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   },
   "src/holidays/ui/holidays.component.ts": {
@@ -212,6 +307,8 @@ exports[`export data > should test a simple application > simple-application 1`]
     "imports": [
       "src/holidays/model/index.ts"
     ],
+    "unresolvedImports": [],
+    "projectName": "default",
     "externalLibraries": []
   }
 }"

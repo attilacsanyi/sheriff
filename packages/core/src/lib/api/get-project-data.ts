@@ -6,10 +6,12 @@ import getFs from '../fs/getFs';
 
 export type ProjectDataEntry = {
   module: string;
-  moduleType: 'barrel' | 'barrel-less',
+  moduleType: 'barrel' | 'barrel-less';
   tags: string[];
   imports: string[];
   externalLibraries?: string[];
+  unresolvedImports: string[];
+  projectName: string;
 };
 
 /**
@@ -21,6 +23,11 @@ export type Options = {
    * that contains the external libraries, i.e. node_modules.
    */
   includeExternalLibraries?: boolean;
+  /**
+   * Adds a property `projectName` to each entry
+   * that contains the name of the project.
+   */
+  projectName?: string;
 };
 export type ProjectData = Record<string, ProjectDataEntry>;
 
@@ -143,12 +150,10 @@ export function getProjectData(
     const entry: ProjectDataEntry = {
       module: fileInfo.moduleInfo.path || '.',
       moduleType: fileInfo.moduleInfo.hasBarrel ? 'barrel' : 'barrel-less',
-      tags: calcOrGetTags(
-        fileInfo.moduleInfo.path,
-        projectInfo,
-        tagsCache,
-      ),
+      tags: calcOrGetTags(fileInfo.moduleInfo.path, projectInfo, tagsCache),
       imports: fileInfo.imports.map((fileInfo) => fileInfo.path),
+      unresolvedImports: fileInfo.unresolvableImports,
+      projectName: options.projectName ?? '',
     };
 
     if (options.includeExternalLibraries) {
@@ -184,6 +189,8 @@ function relativizeIfRequired(
       imports: moduleData.imports.map((importPath) =>
         relative(toFsPath(importPath)),
       ),
+      unresolvedImports: moduleData.unresolvedImports,
+      projectName: moduleData.projectName,
     };
 
     if (options.includeExternalLibraries) {

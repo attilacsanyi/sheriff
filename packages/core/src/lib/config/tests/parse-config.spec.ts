@@ -5,10 +5,13 @@ import { toFsPath } from '../../file-info/fs-path';
 import getFs, { useVirtualFs } from '../../fs/getFs';
 import {
   CollidingEncapsulationSettings,
+  CollidingEntrySettings,
   MissingModulesWithoutAutoTaggingError,
+  NoEntryPointsFoundError,
   TaggingAndModulesError,
 } from '../../error/user-error';
 import '../../test/expect.extensions';
+import { defaultIgnoreFileExtensions } from '../default-file-extensions';
 
 describe('parse Config', () => {
   it('should read value', () => {
@@ -37,6 +40,8 @@ describe('parse Config', () => {
       'entryFile',
       'isConfigFileMissing',
       'barrelFileName',
+      'entryPoints',
+      'ignoreFileExtensions',
     ]);
   });
 
@@ -78,6 +83,8 @@ export const config: SheriffConfig = {
         isConfigFileMissing: false,
         entryFile: '',
         barrelFileName: 'index.ts',
+        entryPoints: undefined,
+        ignoreFileExtensions: defaultIgnoreFileExtensions,
       });
     });
 
@@ -96,6 +103,42 @@ export const config: SheriffConfig = {
       expect(() =>
         parseConfig(toFsPath(getFs().cwd() + '/sheriff.config.ts')),
       ).toThrowUserError(new MissingModulesWithoutAutoTaggingError());
+    });
+
+    it('should not throw if modules is present and autoTagging is disabled', () => {
+      getFs().writeFile(
+        'sheriff.config.ts',
+        `
+import { SheriffConfig } from '@softarc/sheriff-core';
+
+export const config: SheriffConfig = {
+  autoTagging: false,
+  modules: {}
+};
+      `,
+      );
+
+      expect(() =>
+        parseConfig(toFsPath(getFs().cwd() + '/sheriff.config.ts')),
+      ).not.toThrowUserError(new MissingModulesWithoutAutoTaggingError());
+    });
+
+    it('should not throw if tagging is present and autoTagging is disabled', () => {
+      getFs().writeFile(
+        'sheriff.config.ts',
+        `
+import { SheriffConfig } from '@softarc/sheriff-core';
+
+export const config: SheriffConfig = {
+  autoTagging: false,
+  tagging: {}
+};
+      `,
+      );
+
+      expect(() =>
+        parseConfig(toFsPath(getFs().cwd() + '/sheriff.config.ts')),
+      ).not.toThrowUserError(new MissingModulesWithoutAutoTaggingError());
     });
 
     it('should not throw if modules is empty and autoTagging does not exist', () => {
@@ -195,5 +238,133 @@ export const config: SheriffConfig = {
     expect(() =>
       parseConfig(toFsPath(getFs().cwd() + '/sheriff.config.ts')),
     ).toThrowUserError(new CollidingEncapsulationSettings());
+  });
+
+  it('should throw if both entryFile and entryPoints are set', () => {
+    getFs().writeFile(
+      'sheriff.config.ts',
+      `
+        import { SheriffConfig } from '@softarc/sheriff-core';
+
+        export const config: SheriffConfig = {
+          depRules: {
+            'root': 'noTag',
+            'noTag': 'noTag',
+          },
+          entryFile: 'src/index.ts',
+          entryPoints: {
+            'holiday': 'apps/holiday/src/index.ts',
+          }
+        };
+      `,
+    );
+
+    expect(() =>
+      parseConfig(toFsPath(getFs().cwd() + '/sheriff.config.ts')),
+    ).toThrowUserError(new CollidingEntrySettings());
+  });
+
+  it('should throw if entryPoints is an empty Record', () => {
+    getFs().writeFile(
+      'sheriff.config.ts',
+      `
+        import { SheriffConfig } from '@softarc/sheriff-core';
+
+        export const config: SheriffConfig = {
+          depRules: {
+            'root': 'noTag',
+            'noTag': 'noTag',
+          },
+          entryPoints: {}
+        };
+      `,
+    );
+
+    expect(() =>
+      parseConfig(toFsPath(getFs().cwd() + '/sheriff.config.ts')),
+    ).toThrowUserError(new NoEntryPointsFoundError());
+  });
+
+  describe('ignoreFileExtensions', () => {
+    it('should ensure that all file extensions are lowercase', () => {
+      getFs().writeFile(
+        'sheriff.config.ts',
+        `
+import { SheriffConfig } from '@softarc/sheriff-core';
+
+export const config: SheriffConfig = {
+  ignoreFileExtensions: ['JPG', 'PNG', 'Json'],
+  depRules: { root: 'noTag', noTag: 'noTag' }
+};
+        `,
+      );
+      const config = parseConfig(
+        toFsPath(getFs().cwd() + '/sheriff.config.ts'),
+      );
+      expect(config.ignoreFileExtensions).toEqual(['jpg', 'png', 'json']);
+    });
+
+    describe('ignoreFileExtensions', () => {
+      it('should ensure that all file extensions are unique', () => {
+        getFs().writeFile(
+          'sheriff.config.ts',
+          `
+import { SheriffConfig } from '@softarc/sheriff-core';
+
+export const config: SheriffConfig = {
+  ignoreFileExtensions: ['json', 'json', 'png', 'PNG'],
+  depRules: { root: 'noTag', noTag: 'noTag' }
+};
+        `,
+        );
+        const config = parseConfig(
+          toFsPath(getFs().cwd() + '/sheriff.config.ts'),
+        );
+        expect(config.ignoreFileExtensions).toEqual(['json', 'png']);
+      });
+
+      it('should ensure that ignoreFileExtensions as function receives defaults', () => {
+        getFs().writeFile(
+          'sheriff.config.ts',
+          `
+import { SheriffConfig } from '@softarc/sheriff-core';
+
+export const config: SheriffConfig = {
+  ignoreFileExtensions: (defaults) => defaults.filter(ext => ext.startsWith('j')).concat('mdx'),
+  depRules: { root: 'noTag', 'noTag': 'noTag' }
+};
+        `,
+        );
+        const config = parseConfig(
+          toFsPath(getFs().cwd() + '/sheriff.config.ts'),
+        );
+
+        expect(config.ignoreFileExtensions).toEqual([
+          'jpg',
+          'jpeg',
+          'json',
+          'mdx',
+        ]);
+      });
+    });
+
+    it('should use defaults when ignoreFileExtensions is not provided', () => {
+      getFs().writeFile(
+        'sheriff.config.ts',
+        `
+import { SheriffConfig } from '@softarc/sheriff-core';
+
+export const config: SheriffConfig = {
+  depRules: { root: 'noTag', noTag: 'noTag' }
+};
+      `,
+      );
+      const config = parseConfig(
+        toFsPath(getFs().cwd() + '/sheriff.config.ts'),
+      );
+      expect(config.ignoreFileExtensions).toEqual(
+        defaultIgnoreFileExtensions.map((ext: string) => ext.toLowerCase()),
+      );
+    });
   });
 });

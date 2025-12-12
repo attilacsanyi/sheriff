@@ -5,10 +5,13 @@ import getFs from '../fs/getFs';
 import { Configuration } from './configuration';
 import {
   CollidingEncapsulationSettings,
+  CollidingEntrySettings,
   MissingModulesWithoutAutoTaggingError,
+  NoEntryPointsFoundError,
   TaggingAndModulesError,
 } from '../error/user-error';
 import { defaultConfig } from './default-config';
+import { isEmptyRecord } from '../util/is-empty-record';
 
 export const parseConfig = (configFile: FsPath): Configuration => {
   const tsCode = getFs().readFile(configFile);
@@ -18,15 +21,16 @@ export const parseConfig = (configFile: FsPath): Configuration => {
   });
 
   const userSheriffConfig = eval(outputText) as UserSheriffConfig;
-  if (userSheriffConfig.autoTagging === false && !userSheriffConfig.tagging) {
-    throw new MissingModulesWithoutAutoTaggingError();
-  }
 
   if (userSheriffConfig.tagging && userSheriffConfig.modules) {
     throw new TaggingAndModulesError();
   }
   if (userSheriffConfig.tagging) {
     userSheriffConfig.modules = userSheriffConfig.tagging;
+  }
+
+  if (userSheriffConfig.autoTagging === false && !userSheriffConfig.modules) {
+    throw new MissingModulesWithoutAutoTaggingError();
   }
 
   if (
@@ -41,7 +45,40 @@ export const parseConfig = (configFile: FsPath): Configuration => {
       userSheriffConfig.encapsulatedFolderNameForBarrelLess;
   }
 
-  const { tagging, encapsulatedFolderNameForBarrelLess, ...rest } =
-    userSheriffConfig;
-  return { ...defaultConfig, ...rest };
+  const {
+    tagging: _1,
+    encapsulatedFolderNameForBarrelLess: _2,
+    ...rest
+  } = userSheriffConfig;
+
+  if (userSheriffConfig.entryFile && userSheriffConfig.entryPoints) {
+    throw new CollidingEntrySettings();
+  }
+
+  if (
+    userSheriffConfig.entryPoints &&
+    isEmptyRecord(userSheriffConfig.entryPoints)
+  ) {
+    throw new NoEntryPointsFoundError();
+  }
+  const mergedConfig = { ...defaultConfig, ...rest };
+
+  const ignoreFileExtensions = getIgnoreFileExtensions(
+    mergedConfig.ignoreFileExtensions,
+  );
+
+  return {
+    ...mergedConfig,
+    ignoreFileExtensions,
+  };
 };
+
+function getIgnoreFileExtensions(
+  ignoreFileExtensions: string[] | ((defaults: string[]) => string[]),
+): string[] {
+  const extensions =
+    typeof ignoreFileExtensions === 'function'
+      ? ignoreFileExtensions(defaultConfig.ignoreFileExtensions)
+      : ignoreFileExtensions;
+  return Array.from(new Set(extensions.map((ext) => ext.toLowerCase())));
+}
